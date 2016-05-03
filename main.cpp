@@ -3,7 +3,7 @@
 
 int main()
 {
-    MapBuilder m(5,true);
+    MapBuilder m(5,true,CERESBA);
     while(true){
 
         if(!m.process())

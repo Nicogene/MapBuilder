@@ -64,11 +64,11 @@ using namespace iCub::iKin;
 
 //MapBuilder Constructor
 
-MapBuilder::MapBuilder(int numC, bool WithYDplayer){
+MapBuilder::MapBuilder(int numC, bool WithYDplayer, int mBA ){
     this->NumOfCouples=numC;
     this->WithYarpDataPlayer=WithYDplayer;
-
-    first=true;
+    this->methodBA=mBA;
+    this->first=true;
 
 }
 
@@ -76,6 +76,7 @@ MapBuilder::MapBuilder(){
     this->NumOfCouples=1;
     this->WithYarpDataPlayer=false;
     first=true;
+    this->methodBA=-1;
 
 }
 //MapBuilder Destructor
@@ -110,18 +111,18 @@ void MapBuilder::setWithYarpDataPlayer(bool WYDP){this->WithYarpDataPlayer=WYDP;
 
 bool MapBuilder::getWithYarpDataPlayer(){return this->WithYarpDataPlayer;}
 
-void MapBuilder::setCameraMatrices(float fxL, float fyL, float cxL, float cyL,
-                       float fxR, float fyR, float cxR, float cyR){
-    this->CameraMatrixL = (cv::Mat_<float>(3,3) << fxL, 0, cxL, 0, fyL, cyL, 0, 0, 1);
-    this->CameraMatrixR = (cv::Mat_<float>(3,3) << fxR, 0, cxR, 0, fyR, cyR, 0, 0, 1);
+void MapBuilder::setCameraMatrices(double fxL, double fyL, double cxL, double cyL,
+                       double fxR, double fyR, double cxR, double cyR){
+    this->CameraMatrixL = (cv::Mat_<double>(3,3) << fxL, 0, cxL, 0, fyL, cyL, 0, 0, 1);
+    this->CameraMatrixR = (cv::Mat_<double>(3,3) << fxR, 0, cxR, 0, fyR, cyR, 0, 0, 1);
 
 }
 
-void MapBuilder::setDistorsionMatrices(float d0L,float d1L, float d2L, float d3L, float d4L,
-                           float d0R,float d1R, float d2R, float d3R, float d4R){
+void MapBuilder::setDistorsionMatrices(double d0L,double d1L, double d2L, double d3L, double d4L,
+                           double d0R,double d1R, double d2R, double d3R, double d4R){
 
-    this->distCoeffsL= (cv::Mat_<float>(1,5) << d0L, d1L, d2L, d3L, d4L);
-    this->distCoeffsR= (cv::Mat_<float>(1,5) << d0R, d1R, d2R, d3R, d4R);
+    this->distCoeffsL= (cv::Mat_<double>(5,1) << d0L, d1L, d2L, d3L, d4L);
+    this->distCoeffsR= (cv::Mat_<double>(5,1) << d0R, d1R, d2R, d3R, d4R);
 
 }
 
@@ -151,12 +152,18 @@ bool MapBuilder::process(){
         this->getTransformationsToFirstLeft();
         this->removeRowsColsVisibility();
         this->initialize3DPoints();
-        if(this->cvSba())
-            std::cout<<"BA riuscito!"<<std::endl;
-        else
-            std::cout<<"BA fallito!"<<std::endl;
-//        this->writeFileCeres();
-//        this->ceresBa();
+        std::cout<<"!!!!!!!metodo "<<this->methodBA<<"Macro  "<<CVSBA<<" "<<CERESBA<<std::endl;
+        if(this->methodBA==CVSBA){
+            if(this->cvSba())
+                std::cout<<"BA riuscito!"<<std::endl;
+            else
+                std::cout<<"BA fallito!"<<std::endl;
+        }
+        else if(this->methodBA==CERESBA)
+        {
+            this->writeFileCeres();
+            this->ceresBa();
+        }
         this->visualize3DMap();
         return false;
     }
@@ -309,6 +316,10 @@ bool MapBuilder::findPoints(){
 
 
         this->buckets=bucketing(points[0],4,4);
+//        std::cout<<CameraMatrixL<<std::endl; // CONTROLLATE SONO OK
+//        std::cout<<CameraMatrixR<<std::endl;
+//        std::cout<<distCoeffsL<<std::endl;
+//        std::cout<<distCoeffsR<<std::endl;
 
         for(int i=1;i<this->points.size();i++)
         {
@@ -371,8 +382,6 @@ bool MapBuilder::findPoints(){
 //        std::vector<cv::Point2f> tmp;
         cv::undistortPoints(this->points[0],this->points[0],this->CameraMatrixL,this->distCoeffsL);
 //        points[0]=tmp;
-
-        std::stringstream filestream;
 
     }
     else

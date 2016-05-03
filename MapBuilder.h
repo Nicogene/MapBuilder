@@ -5,6 +5,9 @@
 #include <yarp/os/all.h>
 #include <Eigen/StdVector>
 
+#define G2O 0
+#define CVSBA 1
+#define CERESBA 2
 
 
 class MapBuilder
@@ -14,11 +17,12 @@ private:
     std::vector<cv::Mat> images;
     bool first;
     double start;
+    int methodBA;
     bool WithYarpDataPlayer;
-    cv::Mat CameraMatrixL = cv::Mat::eye(3,3,CV_32FC1);
-    cv::Mat CameraMatrixR = cv::Mat::eye(3,3,CV_32FC1);
-    cv::Mat distCoeffsL = cv::Mat(5,1,CV_32FC1, cv::Scalar::all(0));
-    cv::Mat distCoeffsR = cv::Mat(5,1,CV_32FC1, cv::Scalar::all(0));
+    cv::Mat CameraMatrixL = cv::Mat::eye(3,3,CV_64FC1);
+    cv::Mat CameraMatrixR = cv::Mat::eye(3,3,CV_64FC1);
+    cv::Mat distCoeffsL = cv::Mat(5,1,CV_64FC1, cv::Scalar::all(0));
+    cv::Mat distCoeffsR = cv::Mat(5,1,CV_64FC1, cv::Scalar::all(0));
     std::vector<std::vector<int>> buckets;
     std::vector<std::vector<cv::Point2f>> points;
     std::vector<std::vector< int >> visibility;
@@ -30,16 +34,16 @@ private:
 
 public:
     MapBuilder();
-    MapBuilder(int numC, bool WithYDplayer);
+    MapBuilder(int numC, bool WithYDplayer, int mBA=-1);
     ~MapBuilder();
     void setNumOfCouples(int numC);
     int getNumOfCouples();
     void setWithYarpDataPlayer(bool WYDP);
     bool getWithYarpDataPlayer();
-    void setCameraMatrices(float fxL, float fyL, float cxL, float cyL,
-                           float fxR, float fyR, float cxR, float cyR);
-    void setDistorsionMatrices(float d0L,float d1L, float d2L, float d3L, float d4L,
-                               float d0R,float d1R, float d2R, float d3R, float d4R);
+    void setCameraMatrices(double fxL, double fyL, double cxL, double cyL,
+                           double fxR, double fyR, double cxR, double cyR);
+    void setDistorsionMatrices(double d0L,double d1L, double d2L, double d3L, double d4L,
+                               double d0R,double d1R, double d2R, double d3R, double d4R);
     //get cameraMatrix, get distorsion MISSING farli se servono
     bool process();
     bool processCouples();
