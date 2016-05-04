@@ -28,5 +28,3 @@ doc/
 # Merge files
 *.orig
 
-# Cmake files
-tactileGrasp_thrift.cmake
