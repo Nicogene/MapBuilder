@@ -152,7 +152,6 @@ bool MapBuilder::process(){
         this->getTransformationsToFirstLeft();
         this->removeRowsColsVisibility();
         this->initialize3DPoints();
-        std::cout<<"!!!!!!!metodo "<<this->methodBA<<"Macro  "<<CVSBA<<" "<<CERESBA<<std::endl;
         if(this->methodBA==CVSBA){
             if(this->cvSba())
                 std::cout<<"BA riuscito!"<<std::endl;
@@ -925,12 +924,12 @@ bool MapBuilder::getTransformationsToRoot(Network yarp,int i){
 //    std::cout<<trasfL.toString()<<std::endl<<trasfR.toString()<<std::endl;
 //    std::cout<<"@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"<<std::endl; OK nel passaggio tra Matrix a cv::Mat
 
-        cv::Mat ProjLenc = (cv::Mat_<float>(4,4) << trasfL(0,0), trasfL(0,1), trasfL(0,2), trasfL(0,3),
+        cv::Mat ProjLenc = (cv::Mat_<double>(4,4) << trasfL(0,0), trasfL(0,1), trasfL(0,2), trasfL(0,3),
                                             trasfL(1,0), trasfL(1,1), trasfL(1,2), trasfL(1,3),
                                             trasfL(2,0), trasfL(2,1), trasfL(2,2), trasfL(2,3),
                                             trasfL(3,0), trasfL(3,1), trasfL(3,2), trasfL(3,3));
 
-        cv::Mat ProjRenc = (cv::Mat_<float>(4,4) << trasfR(0,0), trasfR(0,1), trasfR(0,2), trasfR(0,3),
+        cv::Mat ProjRenc = (cv::Mat_<double>(4,4) << trasfR(0,0), trasfR(0,1), trasfR(0,2), trasfR(0,3),
                                             trasfR(1,0), trasfR(1,1), trasfR(1,2), trasfR(1,3),
                                             trasfR(2,0), trasfR(2,1), trasfR(2,2), trasfR(2,3),
                                             trasfR(3,0), trasfR(3,1), trasfR(3,2), trasfR(3,3));
@@ -973,7 +972,7 @@ void MapBuilder::getTransformationsCouples(){
     }
 
 void MapBuilder::getTransformationsToFirstLeft(){
-    Eigen::Matrix4f m0;
+    Eigen::Matrix4d m0;
 
     if(true){//Trasformations to the first left image
 
@@ -989,7 +988,7 @@ void MapBuilder::getTransformationsToFirstLeft(){
 
         for(int i=1;i<ProjectionMatrices.size();i++)
         {
-            Eigen::Matrix4f mi;
+            Eigen::Matrix4d mi;
             cv::cv2eigen(ProjectionMatrices[i],mi); //Metodo B per odometry(vedi quaderno)
             //mi=m0.inverse()*mi*rotx*roty;//riporto le coordinate nel sistema di riferimento CV se vedi TODO.txt, questa trasformazione non serve a niente
 //            mi(0,3)=mi(0,3)*1000;
@@ -1008,10 +1007,10 @@ void MapBuilder::getTransformationsToFirstLeft(){
 
         cv::eigen2cv(m0,ProjectionMatrices[0]);
         ProjectionMatrices[0](cv::Rect(0,0,3,3)).copyTo(Rotations[0]);
-        Translations[0] = cv::Mat(3,1,CV_32FC1,cv::Scalar::all(0));
+        Translations[0] = cv::Mat(3,1,CV_64FC1,cv::Scalar::all(0));
     }
     else
-    {// Transformations useful only for the odometry
+    {// Transformations useful only for the odometry, deprecated, not updated to float->double
         std::vector<cv::Mat> transfToRoot;
         transfToRoot.resize(NumOfCouples*2);
         transfToRoot[0]=ProjectionMatrices[0].clone();
@@ -1063,15 +1062,18 @@ void MapBuilder::getTransformationsToFirstLeft(){
 std::vector<cv::Point2d> MapBuilder::getPointsR(std::vector<int> *indeces){
     std::vector<cv::Point2d> pointsR;
     for(int i=0;i<visibility[0].size();i++){
-        std::vector<float> norms;
+        std::vector<float> txs;//vettore che contiene le tx, vado a prendere le maggiori.
         for(int j=0; j<visibility.size();j++){
-                cv::Vec3f t(Translations[j]);
-                norms.push_back(visibility[j][i]*cv::norm(t));// se c'e'uno 0 vuol dire che non e' visibile
-         }
+
+            cv::Mat t(Translations[j]);
+            cv::Mat transformedt(3,1,CV_64FC1);
+            transformedt=Rotations[j].t() * t * visibility[j][i];//lo zero nella visibility esclude che quel frame
+            txs.push_back(transformedt.at<double>(0,0));
+        }
         int index;
         std::vector<float>::iterator it;
-        it=std::max_element(norms.begin(),norms.end());
-        index= std::distance(norms.begin(), it);
+        it=std::max_element(txs.begin(),txs.end());
+        index= std::distance(txs.begin(), it);
         indeces->push_back(index);
         pointsR.push_back(points[index][i]);
 
@@ -1454,7 +1456,7 @@ bool MapBuilder::ceresBa(){
     return true;
 }
 
-int MapBuilder::getTheFarthestFrame(){
+int MapBuilder::getTheFarthestFrame(){//deprecated, use getPointsR
     std::vector<float> norms;
     for(int i=0; i<Translations.size();i++){
         cv::Vec3f t(Translations[i]);

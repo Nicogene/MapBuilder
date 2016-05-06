@@ -22,6 +22,9 @@
 build*
 FwdKinMatlab*
 
+# mfiles
+*.m
+
 # Documentation directory
 doc/
 
