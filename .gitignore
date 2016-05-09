@@ -21,6 +21,7 @@
 # directories
 build*
 FwdKinMatlab*
+Codice*
 
 # mfiles
 *.m
