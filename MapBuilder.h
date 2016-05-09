@@ -26,8 +26,8 @@ private:
     std::vector<std::vector<int>> buckets;
     std::vector<std::vector<cv::Point2f>> points;
     std::vector<std::vector< int >> visibility;
-    std::vector<cv::Mat> Rotations;//Unused for now
-    std::vector<cv::Mat> Translations;//Unused for now
+    std::vector<cv::Mat> Rotations;
+    std::vector<cv::Mat> Translations;
     std::vector<cv::Mat> ProjectionMatrices;
     std::vector<Eigen::Vector3d> PointsXYZ;
 
@@ -60,6 +60,7 @@ protected:
     cv::Mat featureSelection(int numIter, std::vector<cv::Point2f> pointsL, std::vector<cv::Point2f> pointsR);
     bool getTransformationsToRoot(yarp::os::Network yarp, int i);
     std::vector<cv::Point2d> getPointsR(std::vector<int> *indeces);
+    void checkPointIsVisible();
     void initialize3DPoints();
     int getTheFarthestFrame();
     bool cvSba();
