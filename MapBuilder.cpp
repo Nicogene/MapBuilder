@@ -282,7 +282,6 @@ void MapBuilder::collectImages(){
             continue;
         }
 
-
     }
     //    for(int i=0;i<images.size();i++){
     //        std::stringstream imstream;
@@ -346,7 +345,6 @@ bool MapBuilder::findPoints(){
                     // TODO check thresholds
                     if((std::isnan(error.at<float>(j,0))) || (error.at<float>(j,0))> 1000 || (int)status[j]==0 || (abs(points[0][j].x-points[i][j].x)<10 && abs(points[0][j].y-points[i][j].y)<10)){
                         visibility[i][j]=0;
-                        //points[i].erase (points[i].begin()+j);//TODO NON SERVE VERO?
                     }
                     else{
                         cv::circle(Lkey,cv::Point(this->points[i][j].x,this->points[i][j].y),1,cv::Scalar( 255, 0, 0 ),1,8,0);
@@ -436,6 +434,7 @@ void MapBuilder::removeRowsColsVisibility(){
 //            std::cout<<"PRIMA "<<points[0].size()<<std::endl; //OK TESTED, FA quello che serve
             points[0].erase(points[0].begin()+i);
 //            std::cout<<"DOPO "<<points[0].size()<<std::endl;
+
             i--;
             //std::cout<<"Column of visibility erased no correspondence for the point "<<i<<std::endl;
         }
@@ -1002,6 +1001,7 @@ void MapBuilder::getTransformationsToFirstLeft(){
             //            mi(1,3)=mi(1,3)*1000;
             //            mi(2,3)=mi(2,3)*1000;
             mi=m0.inverse()*mi;//m0.inverse non cambia m0 e in ho controllato con octave la inversa l'ha fatta giusta.
+
             cv::eigen2cv(mi,ProjectionMatrices[i]);
 
             ProjectionMatrices[i](cv::Rect(3,0,1,3)).copyTo(Translations[i]);
@@ -1010,6 +1010,7 @@ void MapBuilder::getTransformationsToFirstLeft(){
 
         }
         //    std::cout<<"DETERMINANTE "<<m0.determinant()<<std::endl;
+
 //        m0=m0.inverse()*m0; // delete this lines start from 0
 
 //        cv::eigen2cv(m0,ProjectionMatrices[0]);
@@ -1045,7 +1046,8 @@ void MapBuilder::getTransformationsToFirstLeft(){
     for(int j=0;j<this->ProjectionMatrices.size();j++){
         std::ofstream fileprova;
         fileprova.open("PROVAACCESSO.txt");
-        Eigen::Vector3f v(ProjectionMatrices[j].at<double>(0,3),ProjectionMatrices[j].at<double>(1,3),ProjectionMatrices[j].at<double>(2,3));
+        Eigen::Vector3d v(ProjectionMatrices[j].at<double>(0,3),ProjectionMatrices[j].at<double>(1,3),ProjectionMatrices[j].at<double>(2,3));
+
         //        std::cout<<ProjectionMatrices[j]<<std::endl;                 //OK ACCESSO .at<float>
         //        fileprova<<ProjectionMatrices[j].at<float>(0,0)<<" "<<ProjectionMatrices[j].at<float>(0,1)<<" "<<ProjectionMatrices[j].at<float>(0,2)<<std::endl;
 
@@ -1097,13 +1099,15 @@ std::vector<cv::Point2d> MapBuilder::getPointsR(std::vector<int> *indeces){
 
 void MapBuilder::checkPointIsVisible(){
 // remove the points that are seen from few cameras
-    //std::cout<<ceil(visibility.size()/2)+1<<std::endl;
+
     for(int i=0; i<points[0].size();i++){
         int sum=0;
         for(int j=0;j<visibility.size();j++){
             sum+=visibility[j][i];
         }
+
         if(sum>10/*ceil(visibility.size()/2)+1*/){
+
         }
         else{
             for(int j=0;j<visibility.size();j++){
@@ -1130,6 +1134,7 @@ void MapBuilder::initialize3DPoints(){
 //        else
 //            continue;
 //    }
+
 
 //    std::cout<<"QUI!!  "<<pointsL.size()<<" "<<points[0].size()<<std::endl;
 
@@ -1224,7 +1229,9 @@ void MapBuilder::initialize3DPoints(){
     //    std::ofstream fileprova;
 
     //    fileprova.open("ProvaCutmat.txt");
+
     for(int i=0;i<points[0].size();i++){
+
         cv::Mat currOut;
         //        fileprova<<mL.at<double>(0,i)<<" "<<mL.at<double>(1,i)<<" "<<mL.at<double>(2,i)<<std::endl<<std::endl;
         //        fileprova<<mL(cv::Rect(i,0,1,3))<<std::endl;// ok ho fatto le prove, sono uguali.
@@ -1411,7 +1418,7 @@ void MapBuilder::writeFileCeres(){
                 num_obs++;
         }
     }
-    file<<images.size()<<" "<<visibility[0].size()<<" "<<num_obs<<std::endl;//header
+    file<<images.size()<<" "<<visibility[0].size()/*TODO secondo me e' quello, il num di punti in realta' sara' minore*/<<" "<<num_obs<<std::endl;//header
     for (int i=0;i<visibility[0].size();i++){
         for(int j=0;j<visibility.size();j++){
             if(visibility[j][i]==1){
