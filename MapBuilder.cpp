@@ -150,7 +150,7 @@ bool MapBuilder::process(){
 
         //        this->getRotationsThroughEssential();
         this->getTransformationsToFirstLeft();
-        this->checkPointIsVisible();
+        this->checkPointIsVisible(); //after optimisation TODO
         this->removeRowsColsVisibility();
         this->initialize3DPoints();
         if(this->methodBA==CVSBA){
@@ -343,9 +343,10 @@ bool MapBuilder::findPoints(){
 
             if(points[i].size()>0){
                 for (int j=0;j<points[i].size();j++){        // non posso piu' usare questo vincolo, due immagini possono anche essere lontane
-                    if((std::isnan(error.at<float>(j,0))) || (error.at<float>(j,0))> 60 || (norm(points[0][j]-points[i][j])>50) || (int)status[j]==0 || (abs(points[0][j].x-points[i][j].x)<5 && abs(points[0][j].y-points[i][j].y)<5)){
+                    // TODO check thresholds
+                    if((std::isnan(error.at<float>(j,0))) || (error.at<float>(j,0))> 1000 || (int)status[j]==0 || (abs(points[0][j].x-points[i][j].x)<10 && abs(points[0][j].y-points[i][j].y)<10)){
                         visibility[i][j]=0;
-                        //                        points[i].erase (points[i].begin()+j);
+                        //points[i].erase (points[i].begin()+j);//TODO NON SERVE VERO?
                     }
                     else{
                         cv::circle(Lkey,cv::Point(this->points[i][j].x,this->points[i][j].y),1,cv::Scalar( 255, 0, 0 ),1,8,0);
@@ -369,14 +370,14 @@ bool MapBuilder::findPoints(){
             //                myfile<<points[i][j].x<<" "<<points[i][j].y<<std::endl;
             //            }
 
-            std::stringstream imstream;
-            cv::imshow("Immagine di riferimento",Lkey);
-            imstream<<"Image N"<<i;
-            std::string str=imstream.str();
-            cv::namedWindow(str,1);
-            cv::moveWindow(str,200*(i+1),100);
-            cv::imshow(str,images[i]);
-            if(cv::waitKey(30) >= 0) return false;
+//            std::stringstream imstream;
+//            cv::imshow("Immagine di riferimento",Lkey);
+//            imstream<<"Image N"<<i;
+//            std::string str=imstream.str();
+//            cv::namedWindow(str,1);
+//            cv::moveWindow(str,200*(i+1),100);
+//            cv::imshow(str,images[i]);
+//            if(cv::waitKey(30) >= 0) return false;
 
         }
         //        std::vector<cv::Point2f> tmp;
@@ -399,6 +400,8 @@ bool MapBuilder::findPoints(){
     return res;
 
 }
+
+// TODO Remove points on the border of the size of the optical flow window
 
 void MapBuilder::removeRowsColsVisibility(){
     //remove rows
@@ -428,13 +431,17 @@ void MapBuilder::removeRowsColsVisibility(){
         }
         if(sum<2){
             for(int j=0;j<visibility.size();j++){
-                visibility[j].erase (visibility[j].begin()+i);
+                visibility[j].erase (visibility[j].begin()+i); // TODO check that points are deleted in the same order
             }
+//            std::cout<<"PRIMA "<<points[0].size()<<std::endl; //OK TESTED, FA quello che serve
+            points[0].erase(points[0].begin()+i);
+//            std::cout<<"DOPO "<<points[0].size()<<std::endl;
             i--;
             //std::cout<<"Column of visibility erased no correspondence for the point "<<i<<std::endl;
         }
-
     }
+//    for(int j=0;j<visibility.size();j++) //OK TESTED
+//        std::cout<<"PROVA CHE SIANO UGUALI"<<visibility[j].size()<<std::endl;
 
     std::ofstream myfile;
     myfile.open("Visibility.txt");
@@ -449,7 +456,7 @@ void MapBuilder::removeRowsColsVisibility(){
 
 }
 
-bool MapBuilder::findPointsCouples(){
+bool MapBuilder::findPointsCouples(){ //DEPRECIATED
     bool res=true;
 
     for(int i=0;i<this->points.size();i=i+2)
@@ -986,8 +993,7 @@ void MapBuilder::getTransformationsToFirstLeft(){
         //        roty(0,0)=0.0;roty(2,2)=0.0;
         //        roty(0,2)=1.0;roty(2,0)=1.0;
         //        std::cout<<m0<<std::endl<<m0.inverse()<<std::endl;// l'inversa e' ok, l ho controllata con matlab
-
-        for(int i=1;i<ProjectionMatrices.size();i++)
+        for(int i=0;i<ProjectionMatrices.size();i++)
         {
             Eigen::Matrix4d mi;
             cv::cv2eigen(ProjectionMatrices[i],mi); //Metodo B per odometry(vedi quaderno)
@@ -995,7 +1001,7 @@ void MapBuilder::getTransformationsToFirstLeft(){
             //            mi(0,3)=mi(0,3)*1000;
             //            mi(1,3)=mi(1,3)*1000;
             //            mi(2,3)=mi(2,3)*1000;
-            mi=m0.inverse()*mi;
+            mi=m0.inverse()*mi;//m0.inverse non cambia m0 e in ho controllato con octave la inversa l'ha fatta giusta.
             cv::eigen2cv(mi,ProjectionMatrices[i]);
 
             ProjectionMatrices[i](cv::Rect(3,0,1,3)).copyTo(Translations[i]);
@@ -1004,14 +1010,14 @@ void MapBuilder::getTransformationsToFirstLeft(){
 
         }
         //    std::cout<<"DETERMINANTE "<<m0.determinant()<<std::endl;
-        m0=m0.inverse()*m0;
+//        m0=m0.inverse()*m0; // delete this lines start from 0
 
-        cv::eigen2cv(m0,ProjectionMatrices[0]);
-        ProjectionMatrices[0](cv::Rect(0,0,3,3)).copyTo(Rotations[0]);
-        Translations[0] = cv::Mat(3,1,CV_64FC1,cv::Scalar::all(0));
+//        cv::eigen2cv(m0,ProjectionMatrices[0]);
+//        ProjectionMatrices[0](cv::Rect(0,0,3,3)).copyTo(Rotations[0]);
+//        Translations[0] = cv::Mat(3,1,CV_64FC1,cv::Scalar::all(0));
     }
     else
-    {// Transformations useful only for the odometry, deprecated, not updated to float->double
+    {// Transformations useful only for the odometry, depreciated, not updated to float->double
         std::vector<cv::Mat> transfToRoot;
         transfToRoot.resize(NumOfCouples*2);
         transfToRoot[0]=ProjectionMatrices[0].clone();
@@ -1039,7 +1045,7 @@ void MapBuilder::getTransformationsToFirstLeft(){
     for(int j=0;j<this->ProjectionMatrices.size();j++){
         std::ofstream fileprova;
         fileprova.open("PROVAACCESSO.txt");
-        Eigen::Vector3f v(ProjectionMatrices[j].at<float>(0,3),ProjectionMatrices[j].at<float>(1,3),ProjectionMatrices[j].at<float>(2,3));
+        Eigen::Vector3f v(ProjectionMatrices[j].at<double>(0,3),ProjectionMatrices[j].at<double>(1,3),ProjectionMatrices[j].at<double>(2,3));
         //        std::cout<<ProjectionMatrices[j]<<std::endl;                 //OK ACCESSO .at<float>
         //        fileprova<<ProjectionMatrices[j].at<float>(0,0)<<" "<<ProjectionMatrices[j].at<float>(0,1)<<" "<<ProjectionMatrices[j].at<float>(0,2)<<std::endl;
 
@@ -1049,11 +1055,11 @@ void MapBuilder::getTransformationsToFirstLeft(){
 
         if(j%2==0){
             file1<<v(0)<<" "<<v(1)<<" "<<v(2)<<std::endl;
-            file3<<Rotvec.at<float>(0,0)*CTRL_RAD2DEG<<" "<<Rotvec.at<float>(1,0)*CTRL_RAD2DEG<<" "<<Rotvec.at<float>(2,0)*CTRL_RAD2DEG<<std::endl;
+            file3<<Rotvec.at<double>(0,0)*CTRL_RAD2DEG<<" "<<Rotvec.at<double>(1,0)*CTRL_RAD2DEG<<" "<<Rotvec.at<double>(2,0)*CTRL_RAD2DEG<<std::endl;
         }
         else{
             file2<<v(0)<<" "<<v(1)<<" "<<v(2)<<std::endl;
-            file4<<Rotvec.at<float>(0,0)*CTRL_RAD2DEG<<" "<<Rotvec.at<float>(1,0)*CTRL_RAD2DEG<<" "<<Rotvec.at<float>(2,0)*CTRL_RAD2DEG<<std::endl;
+            file4<<Rotvec.at<double>(0,0)*CTRL_RAD2DEG<<" "<<Rotvec.at<double>(1,0)*CTRL_RAD2DEG<<" "<<Rotvec.at<double>(2,0)*CTRL_RAD2DEG<<std::endl;
         }
 
 
@@ -1069,13 +1075,18 @@ std::vector<cv::Point2d> MapBuilder::getPointsR(std::vector<int> *indeces){
             cv::Mat t(Translations[j]);
             cv::Mat transformedt(3,1,CV_64FC1);
             transformedt=Rotations[j].t() * t * visibility[j][i];//lo zero nella visibility esclude che quel frame //TESTED
-            txs.push_back(transformedt.at<double>(0,0));//TESTED
+            txs.push_back(std::fabs(transformedt.at<double>(0,0)));//TESTED
         }
         int index;
         std::vector<float>::iterator it;
         it=std::max_element(txs.begin(),txs.end());
         index= std::distance(txs.begin(), it);
         indeces->push_back(index);
+        if(index>images.size()-1)//OK TESTED
+            std::cout<<"Problema, l'indice e'.."<<index<<std::endl;
+        if(visibility[index][i]==0)//OK TESTED
+        {
+            std::cout<<"Problema, la visibility e' zero per quel punto in quel frame! "<<txs<<std::endl;}
         pointsR.push_back(points[index][i]);
 
     }
@@ -1086,12 +1097,13 @@ std::vector<cv::Point2d> MapBuilder::getPointsR(std::vector<int> *indeces){
 
 void MapBuilder::checkPointIsVisible(){
 // remove the points that are seen from few cameras
+    //std::cout<<ceil(visibility.size()/2)+1<<std::endl;
     for(int i=0; i<points[0].size();i++){
         int sum=0;
         for(int j=0;j<visibility.size();j++){
             sum+=visibility[j][i];
         }
-        if(sum>ceil(visibility.size()/2)+1){
+        if(sum>10/*ceil(visibility.size()/2)+1*/){
         }
         else{
             for(int j=0;j<visibility.size();j++){
@@ -1106,31 +1118,29 @@ void MapBuilder::initialize3DPoints(){
 
     cv::Mat out_h,mL,mR;
 
-    int index=getTheFarthestFrame();
-
-    std::cout<<"INDEX "<<index<<std::endl;
-
 
     //std::cout<<ProjectionMatrices[0]<<std::endl;
 
-    std::vector<cv::Point2d> pointsL, pointsR;
+    std::vector<cv::Point2d> pointsR;
 
-    for(int j=0; j<visibility[0].size();j++){
-        if(visibility[0][j]==1){
-            pointsL.push_back(points[0][j]);
-        }
-        else
-            continue;
-    }
+//    for(int j=0; j<visibility[0].size();j++){
+//        if(visibility[0][j]==1){
+//            pointsL.push_back(points[0][j]); //LA PRIMA RIGA DOVREBBE ESSERE TUTTA DI UNI, CHE SENSO HA??
+//        }
+//        else
+//            continue;
+//    }
+
+//    std::cout<<"QUI!!  "<<pointsL.size()<<" "<<points[0].size()<<std::endl;
 
     std::vector<int> indeces;
 
     pointsR=this->getPointsR(&indeces);
 
-    cv::Mat F=cv::findFundamentalMat(pointsL,pointsR);
+//    cv::Mat F=cv::findFundamentalMat(points[0],pointsR); //I'm ruining the points (maybe):Direi di si.
 
 
-    cv::correctMatches(F,pointsL,pointsR,pointsL,pointsR);// correct the matches with the geometric error constraint
+//    cv::correctMatches(F,points[0],pointsR,points[0],pointsR);// correct the matches with the geometric error constraint
 
     //    double focal = 1.0;
     //    cv::Mat mask;
@@ -1160,7 +1170,7 @@ void MapBuilder::initialize3DPoints(){
 
     //    mL=cv::Mat(pointsLfilt).reshape(1,2);
     //    mR=cv::Mat(pointsRfilt).reshape(1,2);
-    mL=cv::Mat(pointsL).reshape(1,2);
+    mL=cv::Mat(points[0]).reshape(1,2);
     mR=cv::Mat(pointsR).reshape(1,2);
 
     mL.convertTo(mL,CV_64F);
@@ -1214,7 +1224,7 @@ void MapBuilder::initialize3DPoints(){
     //    std::ofstream fileprova;
 
     //    fileprova.open("ProvaCutmat.txt");
-    for(int i=0;i<pointsL.size();i++){
+    for(int i=0;i<points[0].size();i++){
         cv::Mat currOut;
         //        fileprova<<mL.at<double>(0,i)<<" "<<mL.at<double>(1,i)<<" "<<mL.at<double>(2,i)<<std::endl<<std::endl;
         //        fileprova<<mL(cv::Rect(i,0,1,3))<<std::endl;// ok ho fatto le prove, sono uguali.
@@ -1401,7 +1411,7 @@ void MapBuilder::writeFileCeres(){
                 num_obs++;
         }
     }
-    file<<images.size()<<" "<<visibility[0].size()/*TODO secondo me e' quello, il num di punti in realta' sara' minore*/<<" "<<num_obs<<std::endl;//header
+    file<<images.size()<<" "<<visibility[0].size()<<" "<<num_obs<<std::endl;//header
     for (int i=0;i<visibility[0].size();i++){
         for(int j=0;j<visibility.size();j++){
             if(visibility[j][i]==1){
@@ -1453,8 +1463,11 @@ bool MapBuilder::ceresBa(){
     // for standard bundle adjustment problems.
     ceres::Solver::Options options;
     options.num_linear_solver_threads=4;
+    options.update_state_every_iteration=true;
     options.linear_solver_type = ceres::SPARSE_SCHUR;
     options.minimizer_progress_to_stdout = true;
+//    options.parameter_tolerance=1e-40; //questo e' il parametro per la convergenza, indica quanto deve essere piccola la differenza tra lo stato attuale
+                                        // e quello successivo per considerare il raggiungimento di un minimo. Di default la soglia e' 1e-8
     ceres::Solver::Summary summary;
     ceres::Solve(options, &problem, &summary);
     std::cout << summary.FullReport() << "\n";
