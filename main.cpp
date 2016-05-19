@@ -1,7 +1,9 @@
 #include "MapBuilder.h"
 #include "icubimgkingrabber.h"
+#include "featurefinderandtracker.h"
 #include "MatrixVecAlgebra.h"
 #include <iostream>
+#include <fstream>
 
 int main()
 {
@@ -12,9 +14,35 @@ int main()
 //            break;
 //    }
     iCubImgKinGrabber m(5,true,480,640);
-    std::vector<std::vector<u_char>> images;
-    std::vector<std::vector<double>> proj;
+    std::vector<std::vector<u_char>> images,status;
+    std::vector<std::vector<double>> proj,points;
+    std::vector<std::vector<float>> error;
+
     m.process(images,proj);
+    FeatureFinderAndTracker f(images,480,640);
+
+    f.process(points,status,error);
+//    std::cout<<"images "<<images.size()<<std::endl;
+//    std::cout<<"points "<<points.size()<<std::endl;
+//    std::cout<<"status "<<status.size()<<std::endl;
+//    std::cout<<"error "<<error.size()<<std::endl;
+//    std::cout<<0<<" points "<<points[0].size()<<std::endl;
+//    for(int i=0;i<images.size()-1;i++){//OK points[i] e' il doppio di status e error
+//        std::cout<<i<<" status "<<status[i].size()<<std::endl;
+//        std::cout<<" error "<<error[i].size()<<std::endl;
+//        std::cout<<" points "<<points[i].size()<<std::endl;
+//        std::ofstream filePunti;
+//        std::stringstream nome;
+//        nome<<"punti_"<<i<<".txt";
+//        filePunti.open(nome.str());
+//        for(int j=0;j<error[i].size();j++){
+//            filePunti<<points[i][2*j]<<" "<<points[i][2*j+1]<<std::endl; //OK sono diversi da frame a frame
+//        }
+
+//    }
+
+
+
 
 //    for(int i=0;i<proj.size();i++){
                                                 //OK le sinistre sono eye, le destre hanno l'offset giusto in t
@@ -41,5 +69,7 @@ int main()
 
 //    cv::Mat B(4,4,CV_64FC1,vt.data());
 //    std::cout<<B.t()<<std::endl;//perche' il vector e' in major column, cv::Mat e' in major row
+
+
 
 }
