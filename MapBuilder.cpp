@@ -421,24 +421,36 @@ void MapBuilder::removeRowsColsVisibility(){
         //        else
         //            std::cout<<"Ciao F "<<sum<<std::endl;
     }
+//    std::cout<<"PRIMA!!!!!!!!"<<std::endl;
+//    for(int i=0;i<visibility.size();i++){
+//        std::cout<<"Visibility "<<i<<" "<<visibility[i].size()<<std::endl; //ATT! I points hanno la stessa size, come i vettori visibility
+//        std::cout<<"Points "<< i<<" "<<points[i].size()<<std::endl; //che poi ci siano degli 0 nella visibility, questo e' un altro conto
+//    }
     //remove cols
     for(int i=0;i<visibility[0].size();i++){
-        int sum=0;
+        int sum=0;  
         for(int j=0;j<visibility.size();j++){
             sum+=visibility[j][i];
+
         }
         if(sum<2){
             for(int j=0;j<visibility.size();j++){
-                visibility[j].erase (visibility[j].begin()+i); // TODO check that points are deleted in the same order
+                visibility[j].erase (visibility[j].begin()+i);// TODO check that points are deleted in the same order
+                points[j].erase(points[j].begin()+i);
             }
 //            std::cout<<"PRIMA "<<points[0].size()<<std::endl; //OK TESTED, FA quello che serve
-            points[0].erase(points[0].begin()+i);
+
 //            std::cout<<"DOPO "<<points[0].size()<<std::endl;
 
             i--;
             //std::cout<<"Column of visibility erased no correspondence for the point "<<i<<std::endl;
         }
     }
+//    std::cout<<"DOPO!!!!!!!!"<<std::endl;
+//    for(int i=0;i<visibility.size();i++){
+//        std::cout<<"Visibility "<<i<<" "<<visibility[i].size()<<std::endl; //ATT! I points hanno la stessa size, come i vettori visibility
+//        std::cout<<"Points "<< i<<" "<<points[i].size()<<std::endl; //che poi ci siano degli 0 nella visibility, questo e' un altro conto
+//    }
 //    for(int j=0;j<visibility.size();j++) //OK TESTED
 //        std::cout<<"PROVA CHE SIANO UGUALI"<<visibility[j].size()<<std::endl;
 
