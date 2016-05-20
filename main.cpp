@@ -1,6 +1,7 @@
 #include "MapBuilder.h"
 #include "icubimgkingrabber.h"
 #include "featurefinderandtracker.h"
+#include "visibilitymatrix.h"
 #include "MatrixVecAlgebra.h"
 #include <iostream>
 #include <fstream>
@@ -22,6 +23,20 @@ int main()
     FeatureFinderAndTracker f(images,480,640);
 
     f.process(points,status,error);
+    VisibilityMatrix v(images.size());
+    std::vector<std::vector<int>> vmat;
+//    std::cout<<"Prima "<<std::endl;//OK TESTED
+//    std::cout<<0<<" "<<status[0].size()<<" "<<points[0].size()<<std::endl;
+//    for(int i=0;i<status.size();i++){
+//        std::cout<<i+1<<" "<<status[i].size()<<" "<<points[i].size()<<std::endl;
+//    }
+    vmat=v.getVMat(points,status,error,proj,images);
+//    std::cout<<"Dopo "<<std::endl;//OK TESTED
+//    for(int i=0;i<vmat.size();i++){
+//        std::cout<<i<<" "<<vmat[i].size()<<" "<<points[i].size()<<std::endl;
+//    }
+
+
 //    std::cout<<"images "<<images.size()<<std::endl;
 //    std::cout<<"points "<<points.size()<<std::endl;
 //    std::cout<<"status "<<status.size()<<std::endl;

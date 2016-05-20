@@ -46,16 +46,21 @@ bool FeatureFinderAndTracker::findPoints(std::vector<cv::Mat> &imgs, std::vector
             cv::Size winSize(31,31);
 
             cv::calcOpticalFlowPyrLK(imgs[0],imgs[i],points[0],points[i],sts,err,winSize);
-            status[i-1]=sts;
-            error[i-1].assign((float*)err.datastart, (float*)err.dataend);
+
 
             if(points[i].size()>0){
+                for(int j=0;j<sts.size();j++){
+                    if(abs(points[0][j].x-points[i][j].x)<10 && abs(points[0][j].y-points[i][j].y)<10)
+                        sts[j]=(uchar)0;
+                }
 //                std::cout<<CameraMatrixL<<std::endl<<CameraMatrixR<<std::endl<<distCoeffsL<<std::endl<<distCoeffsR<<std::endl; //OK
                 if(i%2==0)
                     cv::undistortPoints(points[i],points[i],CameraMatrixL,distCoeffsL);
                 else
                     cv::undistortPoints(points[i],points[i],CameraMatrixR,distCoeffsR);
                 cvtPointsToVector(points[i],pts[i]);
+                status[i-1]=sts;
+                error[i-1].assign((float*)err.datastart, (float*)err.dataend);
 
             }
             else return false;
