@@ -150,7 +150,6 @@ std::vector<std::vector<u_char>> iCubImgKinGrabber::collectImages(std::vector<st
 
 bool iCubImgKinGrabber::getTransformationsToRoot(yarp::os::Network yarp, int i, std::vector<std::vector<double>> &ProjectionMatrices){
     bool res=true;
-    std::cout<<"Ciao1"<<std::endl;
     ProjectionMatrices.resize(2*NumOfCouples);//TODO change OLD MEM management
     for(int j=0;j<ProjectionMatrices.size();j++){
         ProjectionMatrices[j].resize(16);

@@ -15,11 +15,11 @@ VisibilityMatrix::VisibilityMatrix(int numCam)
 std::vector<std::vector<int>> VisibilityMatrix::getVMat(std::vector<std::vector<double>> &pts, std::vector<std::vector<u_char>> &status,
                                       std::vector<std::vector<float>> &error, std::vector<std::vector<double>>& ProjectionMatrices,
                                         std::vector<std::vector<u_char>>& imgs ){
-                              buildVisibility(pts,status,error);
+                              buildVisibility(status,error);
                               removeRowsColsVisibility(pts,ProjectionMatrices,imgs);
                               return vmat;
                               }
-void VisibilityMatrix::buildVisibility(std::vector<std::vector<double> > &pts, std::vector<std::vector<u_char> > &status,
+void VisibilityMatrix::buildVisibility(std::vector<std::vector<u_char> > &status,
                                        std::vector<std::vector<float> > &error){
 
                               for(int i=0;i<vmat.size();i++){

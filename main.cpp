@@ -2,9 +2,13 @@
 #include "icubimgkingrabber.h"
 #include "featurefinderandtracker.h"
 #include "visibilitymatrix.h"
+#include "triangulationclass.h"
 #include "MatrixVecAlgebra.h"
 #include <iostream>
 #include <fstream>
+
+#include <pcl/io/pcd_io.h>
+#include <pcl/visualization/pcl_visualizer.h>
 
 int main()
 {
@@ -14,6 +18,7 @@ int main()
 //        if(!m.process())
 //            break;
 //    }
+    //while(true){
     iCubImgKinGrabber m(5,true,480,640);
     std::vector<std::vector<u_char>> images,status;
     std::vector<std::vector<double>> proj,points;
@@ -21,7 +26,6 @@ int main()
 
     m.process(images,proj);
     FeatureFinderAndTracker f(images,480,640);
-
     f.process(points,status,error);
     VisibilityMatrix v(images.size());
     std::vector<std::vector<int>> vmat;
@@ -30,18 +34,82 @@ int main()
 //    for(int i=0;i<status.size();i++){
 //        std::cout<<i+1<<" "<<status[i].size()<<" "<<points[i].size()<<std::endl;
 //    }
+
     vmat=v.getVMat(points,status,error,proj,images);
+
+
+//    std::vector<double> prova={1,5,9,13,2,6,10,14,3,7,11,15,4,8,12,16},R,T;//OK TESTED
+//    getRandT(prova,R,T);
+//    cv::Mat cvrot(3,3,CV_64F,R.data());
+//    cv::Mat cvprova(4,4,CV_64FC1,prova.data());
+
+//    std::cout<<"Proj "<<std::endl<<cvprova.t()<<std::endl<<"Rot "<<std::endl<<cvrot.t()<<std::endl<<"T "<<std::endl<<T<<std::endl;
+    std::vector<std::vector<double>> map;
+    TriangulationClass t(points[0].size()/2);
+
+    map=t.get3DPoints(points,proj,vmat);
+    std::cout<<map.size()<<"x"<<map[0].size()<<std::endl;
+
+
+    std::ofstream filePunti;
+    filePunti.open("Punti.txt");
+    for(int i=0;i<map.size();i++)
+        filePunti<<map[i][0]<<" "<<map[i][1]<<" "<<map[i][2]<<std::endl;
+
+    boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("Tranformations"));
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+
+
+    for(int j=0;j<map.size();j++)
+    {
+
+        pcl::PointXYZRGB point;
+        point.x = map[j][0];
+        point.y = map[j][1];
+        point.z = map[j][2];
+
+        if(point.z<0 || point.z>2000){//2000 mm-> 2 m
+            continue;
+        }
+        else
+        {
+            point.r = 255;
+            point.g = 255;
+            point.b = 255;
+
+        }
+
+
+
+        cloud -> points.push_back(point); // I keep in the point cloud only points with a positive z.
+
+
+    }
+
+    cloud->width = (int)cloud->points.size();
+    cloud->height = 1;
+
+    if (cloud->width>0)
+    {
+
+        viewer->addPointCloud(cloud);
+        while(!viewer->wasStopped()){
+            viewer->spinOnce();
+        }
+
+    }
+//}
+
+
+
+
 //    std::cout<<"Dopo "<<std::endl;//OK TESTED
 //    for(int i=0;i<vmat.size();i++){
 //        std::cout<<i<<" "<<vmat[i].size()<<" "<<points[i].size()<<std::endl;
 //    }
 
 
-//    std::cout<<"images "<<images.size()<<std::endl;
-//    std::cout<<"points "<<points.size()<<std::endl;
-//    std::cout<<"status "<<status.size()<<std::endl;
-//    std::cout<<"error "<<error.size()<<std::endl;
-//    std::cout<<0<<" points "<<points[0].size()<<std::endl;
+
 //    for(int i=0;i<images.size()-1;i++){//OK points[i] e' il doppio di status e error
 //        std::cout<<i<<" status "<<status[i].size()<<std::endl;
 //        std::cout<<" error "<<error[i].size()<<std::endl;
@@ -55,6 +123,8 @@ int main()
 //        }
 
 //    }
+
+
 
 
 

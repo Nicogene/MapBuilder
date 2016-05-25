@@ -70,3 +70,22 @@ void inverseProjMat(std::vector<double> &inv, std::vector<double> &A){
 
 
 }
+
+void getRandT(std::vector<double> &proj, std::vector<double> &R, std::vector<double> &T){//TESTED
+    //get R and T from proj, expressed in column major convention
+    R.resize(9);
+    T.resize(3);
+    int j=0;
+    for(int i=0;i<12;++i && ++j){
+        if(i!=3 && i!=7 && i!=11)
+            R[j]=proj[i];
+
+        else
+            j--;
+
+    }
+    for(int i=12;i<15;i++){
+        T[i-12]=proj[i];
+    }
+
+}

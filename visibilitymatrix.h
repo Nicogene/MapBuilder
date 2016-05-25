@@ -15,7 +15,7 @@ public:
                                           std::vector<std::vector<float>> &error, std::vector<std::vector<double>>& ProjectionMatrices,
                                           std::vector<std::vector<u_char>>& imgs);
 protected:
-    void buildVisibility(std::vector<std::vector<double>> &pts,std::vector<std::vector<u_char>> &status, std::vector<std::vector<float>> &error);
+    void buildVisibility(std::vector<std::vector<u_char>> &status, std::vector<std::vector<float>> &error);
     void removeRowsColsVisibility(std::vector<std::vector<double>> &pts, std::vector<std::vector<double>>& ProjectionMatrices,std::vector<std::vector<u_char>>& imgs);
 
 
