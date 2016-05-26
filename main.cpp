@@ -50,6 +50,8 @@ int main()
     map=t.get3DPoints(points,proj,vmat);
     std::cout<<map.size()<<"x"<<map[0].size()<<std::endl;
 
+    map=t.optimizeWithCeres(points,proj,vmat);
+
 
     std::ofstream filePunti;
     filePunti.open("Punti.txt");

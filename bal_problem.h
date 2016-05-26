@@ -97,6 +97,15 @@ class BALProblem {
       }
       return v;
   }
+  void write3Dpoints(std::vector<std::vector<double>> &v){ //overloaded for using it in triangulation class
+      for (int i = 0; i < this->num_points_; ++i) {
+        const double* point = mutable_points() + i * 3;
+        for (int j = 0; j < 3; ++j) {
+          v[i][j] = point[j];
+        }
+
+      }
+  }
  private:
   template<typename T>
   void FscanfOrDie(FILE *fptr, const char *format, T *value) {

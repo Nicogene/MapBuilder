@@ -1,4 +1,5 @@
 #include "featurefinderandtracker.h"
+//#include "fast.h"
 
 FeatureFinderAndTracker::FeatureFinderAndTracker()
 {
@@ -35,6 +36,9 @@ bool FeatureFinderAndTracker::findPoints(std::vector<cv::Mat> &imgs, std::vector
     this->fillInstrinsics(CameraMatrixL, CameraMatrixR, distCoeffsL, distCoeffsR);
 
     std::vector<cv::KeyPoint> keypointsL;
+//    xy* features;
+//    int numcorn;//TODO mi da undefined reference, non so come convertire uchar in byte
+//    features=fast9_detect_nonmax(images[0].data(),640,480,15,15,&numcorn);
     cv::FAST(imgs[0],keypointsL,15,false,cv::FastFeatureDetector::TYPE_9_16);
     if(keypointsL.size()>0){
         cv::KeyPoint::convert(keypointsL, points[0]);

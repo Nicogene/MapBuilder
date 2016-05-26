@@ -1,5 +1,10 @@
 #include "triangulationclass.h"
 #include "MatrixVecAlgebra.h"
+#include "bal_problem.h"
+#include <ceres/ceres.h>
+#include "gflags/gflags.h"
+#include "glog/logging.h"
+#include "my_reprojection_error.h"
 #include <fstream>
 
 TriangulationClass::TriangulationClass()
@@ -15,7 +20,6 @@ TriangulationClass::TriangulationClass(int numP){
 
 std::vector<cv::Point2d> TriangulationClass::getPointsR(std::vector<std::vector<double>> &pts,std::vector<int> &indeces,std::vector<std::vector<double>> &ProjectionMatrices,std::vector<std::vector<int>> &vmat){
     std::vector<cv::Point2d> pointsR;
-    std::cout<<"Ciao1E"<<std::endl;
     for(int i=0;i<vmat[0].size();i++){
         std::vector<double> txs;//vettore che contiene le tx, vado a prendere le maggiori.
         for(int j=0; j<vmat.size();j++){
@@ -45,7 +49,6 @@ std::vector<cv::Point2d> TriangulationClass::getPointsR(std::vector<std::vector<
 
 
     }
-            std::cout<<"Ciao2E "<<pointsR.size()<<std::endl;
 
     return pointsR;
 
@@ -182,5 +185,101 @@ std::vector<std::vector<double>>  TriangulationClass::get3DPoints(std::vector<st
 
 
                                   }
+
+std::vector<std::vector<double>> TriangulationClass::optimizeWithCeres(std::vector<std::vector<double>> &pts, std::vector<std::vector<double>> &ProjectionMatrices,
+                                           std::vector<std::vector<int>> &vmat){
+
+
+                                 writeFileCeres(pts,ProjectionMatrices,vmat);
+
+
+                                 ceres::examples::BALProblem bal_problem;
+                                 if (!bal_problem.LoadFile("Problem.txt")) {
+                                     std::vector<std::vector<double>> v;
+                                     std::cerr << "ERROR: unable to open file " << "Problem.txt" << "\n";
+                                     return v;
+                                 }
+                                 const double* observations = bal_problem.observations();
+                                 // Create residuals for each observation in the bundle adjustment problem. The
+                                 // parameters for cameras and points are added automatically.
+                                 ceres::Problem problem;
+                                 for (int i = 0; i < bal_problem.num_observations(); ++i) {
+                                     // Each Residual block takes a point and a camera as input and outputs a 2
+                                     // dimensional residual. Internally, the cost function stores the observed
+                                     // image location and compares the reprojection against the observation.
+                                     ceres::CostFunction* cost_function =
+                                             ceres::MyReprojectionError::Create(observations[2 * i + 0],
+                                             observations[2 * i + 1]);
+                                     problem.AddResidualBlock(cost_function,
+                                                              NULL /* squared loss */,
+                                                              bal_problem.mutable_camera_for_observation(i),
+                                                              bal_problem.mutable_point_for_observation(i));
+                                 }
+                                 // Make Ceres automatically detect the bundle structure. Note that the
+                                 // standard solver, SPARSE_NORMAL_CHOLESKY, also works fine but it is slower
+                                 // for standard bundle adjustment problems.
+                                 ceres::Solver::Options options;
+                                 options.num_linear_solver_threads=4;
+                                 options.update_state_every_iteration=true;
+                                 options.linear_solver_type = ceres::SPARSE_SCHUR;
+                                 options.minimizer_progress_to_stdout = true;
+                             //    options.parameter_tolerance=1e-40; //questo e' il parametro per la convergenza, indica quanto deve essere piccola la differenza tra lo stato attuale
+                                                                     // e quello successivo per considerare il raggiungimento di un minimo. Di default la soglia e' 1e-8
+                                 ceres::Solver::Summary summary;
+                                 ceres::Solve(options, &problem, &summary);
+                                 std::cout << summary.FullReport() << "\n";
+                                 bal_problem.write3Dpoints(ptsXYZ);
+
+                                 //    std::cout<<"SIZE DOPO CERES "<<PointsXYZ.size()<<std::endl; // ok la dimensione e' ok
+//                                 std::ofstream filedopo;
+//                                 filedopo.open("Dopo.txt");
+//                                 for(int i=0;i<PointsXYZ.size();i++){
+
+//                                     filedopo<<PointsXYZ[i](0)<<" "<<PointsXYZ[i](1)<<" "<<PointsXYZ[i](2)<<std::endl;
+//                                 }
+
+
+
+                                 return ptsXYZ;
+
+                                 }
+void TriangulationClass::writeFileCeres(std::vector<std::vector<double> > &pts, std::vector<std::vector<double> > &ProjectionMatrices, std::vector<std::vector<int> > &vmat){
+    std::ofstream file, filepunti;
+//    filepunti.open("Prima.txt");
+    file.open("Problem.txt");
+    int num_obs=0;
+    for(int i=0;i<vmat.size();i++){
+        for(int j=0; j<vmat[i].size();j++){
+            if(vmat[i][j]==1)
+                num_obs++;
+        }
+    }
+    file<<vmat.size()<<" "<<vmat[0].size()<<" "<<num_obs<<std::endl;//header
+    for (int i=0;i<vmat[0].size();i++){
+        for(int j=0;j<vmat.size();j++){
+            if(vmat[j][i]==1){
+                file<<j<<" "<<i<<" "<<pts[j][2*i]<<" "<<pts[j][2*i+1]<<std::endl;//camera vs point, aka visibility
+            }
+        }
+    }
+    for(int i=0;i<vmat.size();i++){ //camera parameters(ext and intr)
+        std::vector<double> R(16),t(3);
+        getRandT(ProjectionMatrices[i],R,t);
+        transpose(R,4,4);//because cv::Mat need row major convention
+        cv::Mat rotvec(3,1,CV_32FC1), Rotation(4,4,CV_64F,R.data());
+        cv::Rodrigues(Rotation,rotvec);
+
+        file<<rotvec.at<float>(0,0)<<std::endl<<rotvec.at<float>(1,0)<<std::endl<<rotvec.at<float>(2,0)<<std::endl;//Rot
+        //        std::cout<<rotvec<<std::endl; //Ok accesso sia sopra che sotto.
+        file<<t[0]<<std::endl<<t[1]<<std::endl<<t[2]<<std::endl;
+        //        std::cout<<Translations[i]<<std::endl; //ok accesso
+        file<<0.0<<std::endl<<0.0<<std::endl<<0.0<<std::endl<<0.0<<std::endl;
+    }
+    for(int i=0;i<ptsXYZ.size();i++)
+    {
+        file<<ptsXYZ[i][0]<<std::endl<<ptsXYZ[i][1]<<std::endl<<ptsXYZ[i][2]<<std::endl; // 3D points
+//        filepunti<<PointsXYZ[i](0)<<" "<<PointsXYZ[i](1)<<" "<<PointsXYZ[i](2)<<std::endl;//Ok accesso sopra.
+    }
+}
 
 
