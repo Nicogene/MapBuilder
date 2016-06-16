@@ -48,6 +48,7 @@ void VisibilityMatrix::removeRowsColsVisibility(std::vector<std::vector<double> 
             imgs.erase (imgs.begin()+i);
             vmat.erase (vmat.begin()+i);
             pts.erase (pts.begin()+i);
+
             //            std::cout<<"Ciao T "<<sum<<std::endl;
             std::cout<<"Frame erased, too few correspondences"<<std::endl;
             i--;
@@ -55,7 +56,6 @@ void VisibilityMatrix::removeRowsColsVisibility(std::vector<std::vector<double> 
         //        else
         //            std::cout<<"Ciao F "<<sum<<std::endl;
     }
-    //remove cols
     for(int i=0;i<vmat[0].size();i++){
         int sum=0;
         for(int j=0;j<vmat.size();j++){
@@ -65,11 +65,10 @@ void VisibilityMatrix::removeRowsColsVisibility(std::vector<std::vector<double> 
             for(int j=0;j<vmat.size();j++){
                 vmat[j].erase (vmat[j].begin()+i);
                 pts[j].erase(pts[j].begin()+2*i);//x
-                pts[j].erase(pts[j].begin()+2*i+1);//y
+                pts[j].erase(pts[j].begin()+2*i);//y //Giusto senza il +1, il vettore si accorcia, e alla posizione 2*i ci va quello 2*i+1
             }
 //            std::cout<<"PRIMA "<<points[0].size()<<std::endl; //OK TESTED, FA quello che serve
 //            std::cout<<"DOPO "<<points[0].size()<<std::endl;
-
             i--;
             //std::cout<<"Column of visibility erased no correspondence for the point "<<i<<std::endl;
         }

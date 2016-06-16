@@ -35,6 +35,7 @@ int main()
 //        std::cout<<i+1<<" "<<status[i].size()<<" "<<points[i].size()<<std::endl;
 //    }
 
+
     vmat=v.getVMat(points,status,error,proj,images);
 
 
@@ -46,10 +47,8 @@ int main()
 //    std::cout<<"Proj "<<std::endl<<cvprova.t()<<std::endl<<"Rot "<<std::endl<<cvrot.t()<<std::endl<<"T "<<std::endl<<T<<std::endl;
     std::vector<std::vector<double>> map;
     TriangulationClass t(points[0].size()/2);
-
     map=t.get3DPoints(points,proj,vmat);
     std::cout<<map.size()<<"x"<<map[0].size()<<std::endl;
-
     map=t.optimizeWithCeres(points,proj,vmat);
 
 
@@ -156,7 +155,6 @@ int main()
 
 //    cv::Mat B(4,4,CV_64FC1,vt.data());
 //    std::cout<<B.t()<<std::endl;//perche' il vector e' in major column, cv::Mat e' in major row
-
 
 
 }

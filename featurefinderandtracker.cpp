@@ -1,5 +1,8 @@
 #include "featurefinderandtracker.h"
-//#include "fast.h"
+
+extern "C" {
+#include "fast.h"
+}
 
 FeatureFinderAndTracker::FeatureFinderAndTracker()
 {
@@ -36,12 +39,18 @@ bool FeatureFinderAndTracker::findPoints(std::vector<cv::Mat> &imgs, std::vector
     this->fillInstrinsics(CameraMatrixL, CameraMatrixR, distCoeffsL, distCoeffsR);
 
     std::vector<cv::KeyPoint> keypointsL;
-//    xy* features;
-//    int numcorn;//TODO mi da undefined reference, non so come convertire uchar in byte
-//    features=fast9_detect_nonmax(images[0].data(),640,480,15,15,&numcorn);
-    cv::FAST(imgs[0],keypointsL,15,false,cv::FastFeatureDetector::TYPE_9_16);
-    if(keypointsL.size()>0){
-        cv::KeyPoint::convert(keypointsL, points[0]);
+    xy* features;//ciao
+    int numcorn;
+    features=fast9_detect(images[0].data(),640,480,640,15,&numcorn);// byte (aka unsigned char), se non ci sono 0 padding strides e' uguale a xsize
+//    std::cout<<features[0].x<<" "<<features[0].y<<" numPoints "<< numcorn<<std::endl;//OK accesso.
+    points[0].resize(numcorn);
+    for(int i=0;i<points[0].size();i++){
+        points[0][i].x=features[i].x;
+        points[0][i].y=features[i].y;
+    }
+//    cv::FAST(imgs[0],keypointsL,15,false,cv::FastFeatureDetector::TYPE_9_16);
+    if(/*keypointsL.size()>0*/numcorn>0){
+//        cv::KeyPoint::convert(keypointsL, points[0]);
         for(int i=1;i<points.size();i++)
         {
             std::vector<uchar> sts;

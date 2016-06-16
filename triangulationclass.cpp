@@ -18,8 +18,7 @@ TriangulationClass::TriangulationClass(int numP){
     }
 }
 
-std::vector<cv::Point2d> TriangulationClass::getPointsR(std::vector<std::vector<double>> &pts,std::vector<int> &indeces,std::vector<std::vector<double>> &ProjectionMatrices,std::vector<std::vector<int>> &vmat){
-    std::vector<cv::Point2d> pointsR;
+void TriangulationClass::getPointsR(std::vector<cv::Point2d> &pointsR,std::vector<std::vector<double>> &pts,std::vector<int> &indeces,std::vector<std::vector<double>> &ProjectionMatrices,std::vector<std::vector<int>> &vmat){
     for(int i=0;i<vmat[0].size();i++){
         std::vector<double> txs;//vettore che contiene le tx, vado a prendere le maggiori.
         for(int j=0; j<vmat.size();j++){
@@ -50,12 +49,10 @@ std::vector<cv::Point2d> TriangulationClass::getPointsR(std::vector<std::vector<
 
     }
 
-    return pointsR;
 
 }
 
-cv::Mat TriangulationClass::myTriangulate(cv::Mat Rot,cv::Mat t, cv::Mat x1, cv::Mat x2 ){
-    cv::Mat xf(3,x1.cols,CV_64FC1);//Verificare che effettivamente abbia N righe, possono essere anche cols.
+void TriangulationClass::myTriangulate(cv::Mat &xf, cv::Mat Rot, cv::Mat t, cv::Mat x1, cv::Mat x2 ){
     x1.convertTo(x1,CV_64FC1);
     x2.convertTo(x2,CV_64FC1);
     Rot.convertTo(Rot,CV_64FC1);
@@ -106,10 +103,6 @@ cv::Mat TriangulationClass::myTriangulate(cv::Mat Rot,cv::Mat t, cv::Mat x1, cv:
     xf(cv::Rect(0,1,x1.cols,1)) = x1(cv::Rect(0,1,x1.cols,1)).mul(z);
     xf(cv::Rect(0,2,x1.cols,1)) = x1(cv::Rect(0,2,x1.cols,1)).mul(z);
 
-
-
-
-    return xf;
 }
 
 void TriangulationClass::cvtVectorToPoints(std::vector<cv::Point2d> &cvpts, std::vector<double> &pts){
@@ -127,7 +120,7 @@ std::vector<std::vector<double>>  TriangulationClass::get3DPoints(std::vector<st
                                   std::vector<cv::Point2d> pointsL,pointsR;
                                   std::vector<int> indeces;
                                   cvtVectorToPoints(pointsL,pts[0]);//OK
-                                  pointsR=getPointsR(pts,indeces,ProjectionMatrices,vmat);//OK
+                                  getPointsR(pointsR,pts,indeces,ProjectionMatrices,vmat);//OK
                                   std::ofstream provaindici,provaPuntiLR;
                                   provaindici.open("Provaindici.txt");
                                   provaPuntiLR.open("ProvaPuntiLR.txt");
@@ -135,7 +128,7 @@ std::vector<std::vector<double>>  TriangulationClass::get3DPoints(std::vector<st
                                       provaindici<<indeces[i]<<std::endl;
                                       provaPuntiLR<<pointsL[i].x<<" "<<pointsL[i].y<<" "<<pointsR[i].x<<" "<<pointsR[i].y<<std::endl;
                                   }
-                                  cv::Mat mL,mR,out;
+                                  cv::Mat mL,mR;
 
                                   mL=cv::Mat(pointsL).reshape(1,2);
                                   mR=cv::Mat(pointsR).reshape(1,2);
@@ -149,20 +142,21 @@ std::vector<std::vector<double>>  TriangulationClass::get3DPoints(std::vector<st
                                   cv::vconcat(mL,o,mL);
                                   cv::vconcat(mR,o,mR);
 
-
+                                  cv::Mat out(3,1,CV_64FC1);
                                   for(int i=0;i<pointsL.size();i++){
 
                                       std::vector<double> proj(16);
                                       proj=transpose(ProjectionMatrices[indeces[i]],4,4);//because projectionMatrices is column major
 
-                                      cv::Mat currOut,Proj(4,4,CV_64FC1,proj.data());
+                                      cv::Mat currOut(3,1,CV_64FC1),Proj(4,4,CV_64FC1,proj.data());
 
                                       if(i==0){
 
-                                          out=myTriangulate(Proj(cv::Rect(0,0,3,3)),Proj(cv::Rect(3,0,1,3))*1000,mL(cv::Rect(i,0,1,3)),mR(cv::Rect(i,0,1,3)));
+
+                                          myTriangulate(out,Proj(cv::Rect(0,0,3,3)),Proj(cv::Rect(3,0,1,3))*1000,mL(cv::Rect(i,0,1,3)),mR(cv::Rect(i,0,1,3)));
                                       }
                                       else{
-                                          currOut=myTriangulate(Proj(cv::Rect(0,0,3,3)),Proj(cv::Rect(3,0,1,3))*1000,mL(cv::Rect(i,0,1,3)),mR(cv::Rect(i,0,1,3)));
+                                          myTriangulate(currOut,Proj(cv::Rect(0,0,3,3)),Proj(cv::Rect(3,0,1,3))*1000,mL(cv::Rect(i,0,1,3)),mR(cv::Rect(i,0,1,3)));
                                           cv::hconcat(out,currOut,out);
                                       }
                                   }

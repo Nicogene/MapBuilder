@@ -22,7 +22,8 @@
 build*
 FwdKinMatlab*
 Codice*
-fast*
+fast-C*
+temp*
 
 # mfiles
 *.m

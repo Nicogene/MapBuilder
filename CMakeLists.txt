@@ -21,7 +21,36 @@ include_directories(${YARP_INCLUDE_DIRS}
                     ${SUITESPARSE_INCLUDE_DIRS}
                     ${CERES_INCLUDE_DIRS})
 aux_source_directory(. SRC_LIST)
-add_executable(${PROJECT_NAME} ${SRC_LIST})
+
+set(FAST_SRCS fast_10.c
+              fast_11.c
+              fast_12.c
+              fast_9.c
+              fast.c
+              nonmax.c)
+
+set(FAST_HDRS fast.h)
+
+add_library(FAST STATIC ${FAST_SRCS} ${FAST_HDRS})
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
+set(MapBuilder_SRCS featurefinderandtracker.cpp
+                    icubimgkingrabber.cpp
+                    main.cpp
+                    MapBuilder.cpp
+                    MatrixVecAlgebra.cpp
+                    triangulationclass.cpp
+                    visibilitymatrix.cpp)
+
+set(MapBuilder_HDRS bal_problem.h
+                    featurefinderandtracker.h
+                    icubimgkingrabber.h
+                    MapBuilder.h
+                    MatrixVecAlgebra.h
+                    my_reprojection_error.h
+                    triangulationclass.h
+                    visibilitymatrix.h)
+
+add_executable(${PROJECT_NAME} ${MapBuilder_SRCS} ${MapBuilder_HDRS})
 target_link_libraries(MapBuilder ${YARP_LIBRARIES}
                                          ${ICUB_LIBRARIES}
                                          ${OpenCV_LIBRARIES}
@@ -34,7 +63,8 @@ target_link_libraries(MapBuilder ${YARP_LIBRARIES}
                                          ${G2O_TYPES_SBA}
                                          ${G2O_TYPES_ICP}
                                          ${cvsba_LIBS}
-                                        ${CERES_LIBRARIES})
+                                        ${CERES_LIBRARIES}
+                                    FAST)
 
 
 if(${CMAKE_VERSION} VERSION_LESS 3.1)

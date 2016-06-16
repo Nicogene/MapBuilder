@@ -337,13 +337,29 @@ void iCubImgKinGrabber::getTransformationsToFirstLeft(std::vector<std::vector<do
         std::vector<double> tmp(16);
         multiply(tmp,m0,ProjectionMatrices[i],4,4,4);
         ProjectionMatrices[i]=tmp;
+        checkZeroRotations(ProjectionMatrices[i]);
 
 
     }
 
 
-
-
-
 }
 
+
+void iCubImgKinGrabber::checkZeroRotations(std::vector<double> &proj){
+    std::vector<double> x(3);//Angles around x y and z
+    x[0]=0.5*(proj[6]-proj[9]);
+    x[1]=0.5*(proj[8]-proj[2]);
+    x[2]=0.5*(proj[1]-proj[4]);
+    double theta=sqrt(x[0]*x[0]+x[1]*x[1]+x[2]*x[2]);
+//    cv::Mat prima(4,4,CV_64FC1,proj.data());// Dovrebbe essere ok!
+//    std::cout<<"Theta:"<<theta<<std::endl<<"Prima "<<prima.t()<<std::endl;
+    if(theta<0.0000001){
+        proj[0] = 1; proj[4] = 0; proj[8] = 0;
+        proj[1] = 0; proj[5] = 1; proj[9] = 0;
+        proj[2] = 0; proj[6] = 0; proj[10] = 1;
+    }
+//    cv::Mat dopo(4,4,CV_64FC1,proj.data());//Dovrebbe essere ok!
+//    std::cout<<"Dopo "<<dopo.t()<<std::endl;
+
+}
