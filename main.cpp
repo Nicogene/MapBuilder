@@ -99,7 +99,7 @@ int main()
         }
 
     }
-//}
+//}//e' la parentesi del while togli il commento se vuoi il loop
 
 
 

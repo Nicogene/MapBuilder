@@ -267,7 +267,7 @@ void TriangulationClass::writeFileCeres(std::vector<std::vector<double> > &pts, 
         //        std::cout<<rotvec<<std::endl; //Ok accesso sia sopra che sotto.
         file<<t[0]<<std::endl<<t[1]<<std::endl<<t[2]<<std::endl;
         //        std::cout<<Translations[i]<<std::endl; //ok accesso
-        file<<0.0<<std::endl<<0.0<<std::endl<<0.0<<std::endl<<0.0<<std::endl;
+        file<<1.0<<std::endl<<1.0<<std::endl<<0.0<<std::endl<<0.0<<std::endl;
     }
     for(int i=0;i<ptsXYZ.size();i++)
     {

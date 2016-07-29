@@ -98,8 +98,8 @@ std::vector<std::vector<u_char>> iCubImgKinGrabber::collectImages(std::vector<st
                 Image iR(*yarpImageR);
                 IplImage* cvImageR=(IplImage*)iR.getIplImage();
 
-                cvCvtColor(cvImageL, cvImageL, CV_RGB2BGR);
-                cvCvtColor(cvImageR, cvImageR, CV_RGB2BGR);
+//                cvCvtColor(cvImageL, cvImageL, CV_RGB2BGR);
+//                cvCvtColor(cvImageR, cvImageR, CV_RGB2BGR);
 
                 //Convert IplImage to cv::Mat
                 cv::Mat LOld = cv::cvarrToMat((IplImage*) cvImageL);
@@ -107,7 +107,7 @@ std::vector<std::vector<u_char>> iCubImgKinGrabber::collectImages(std::vector<st
                 cv::Mat L;
 
                 if(this->WithYarpDataPlayer)
-                    L = LOld(cv::Rect(3,3,cols,rows)).clone();//Le immagini left dell'acquisizione di Tariq sono 648x488
+                    L = LOld(cv::Rect(0,0,cols,rows)).clone();//Le immagini left dell'acquisizione di Tariq sono 648x488
                 else
                     L=LOld.clone();
 
@@ -145,6 +145,8 @@ std::vector<std::vector<u_char>> iCubImgKinGrabber::collectImages(std::vector<st
     }
 
         getTransformationsToFirstLeft(ProjectionMatrices);
+        imagePortL.close();
+        imagePortR.close();
         return imgs;
     }
 
@@ -304,6 +306,7 @@ bool iCubImgKinGrabber::getTransformationsToRoot(yarp::os::Network yarp, int i, 
 
     ProjectionMatrices[i]=tempL;
     ProjectionMatrices[i+1]=tempR;
+    encHeadPort.close(); encTorsoPort.close();
 
 //    std::cout<<"Size projL "<<ProjectionMatrices[i].size()<<std::endl;
 //    std::cout<<"Size projR "<<ProjectionMatrices[i+1].size()<<std::endl; //OK 16 elementi
