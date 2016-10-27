@@ -2,7 +2,7 @@ project(MapBuilder)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 cmake_minimum_required(VERSION 2.8)
 list(APPEND CMAKE_MODULE_PATH "/usr/local/lib/cmake/" )
-find_package(G2O REQUIRED)
+#find_package(G2O REQUIRED)
 find_package(YARP REQUIRED)
 FIND_PACKAGE(ICUB REQUIRED)
 find_package( OpenCV REQUIRED )
@@ -16,7 +16,7 @@ include_directories(${YARP_INCLUDE_DIRS}
                     ${ICUB_INCLUDE_DIRS}
                     ${OpenCV_INCLUDE_DIRS}
                     ${PCL_INCLUDE_DIRS}
-                    ${G2O_INCLUDE_DIR}
+                    #${G2O_INCLUDE_DIR}
                     ${CHOLMOD_INCLUDE_DIR}
                     ${SUITESPARSE_INCLUDE_DIRS}
                     ${CERES_INCLUDE_DIRS})
@@ -36,7 +36,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
 set(MapBuilder_SRCS featurefinderandtracker.cpp
                     icubimgkingrabber.cpp
                     main.cpp
-                    MapBuilder.cpp
                     MatrixVecAlgebra.cpp
                     triangulationclass.cpp
                     visibilitymatrix.cpp)
@@ -44,7 +43,6 @@ set(MapBuilder_SRCS featurefinderandtracker.cpp
 set(MapBuilder_HDRS bal_problem.h
                     featurefinderandtracker.h
                     icubimgkingrabber.h
-                    MapBuilder.h
                     MatrixVecAlgebra.h
                     my_reprojection_error.h
                     triangulationclass.h
@@ -55,13 +53,13 @@ target_link_libraries(MapBuilder ${YARP_LIBRARIES}
                                          ${ICUB_LIBRARIES}
                                          ${OpenCV_LIBRARIES}
                                          ${PCL_LIBRARIES}
-                                         ${G2O_LIBRARIES}
-                                         ${G2O_CORE_LIBRARY}
-                                         ${G2O_STUFF_LIBRARY}
-                                         ${G2O_SOLVER_CHOLMOD}
+                                         #${G2O_LIBRARIES}
+                                         #${G2O_CORE_LIBRARY}
+                                         #${G2O_STUFF_LIBRARY}
+                                         #${G2O_SOLVER_CHOLMOD}
                                          ${CHOLMOD_LIBRARY}
-                                         ${G2O_TYPES_SBA}
-                                         ${G2O_TYPES_ICP}
+                                         #${G2O_TYPES_SBA}
+                                         #${G2O_TYPES_ICP}
                                          ${cvsba_LIBS}
                                         ${CERES_LIBRARIES}
                                     FAST)

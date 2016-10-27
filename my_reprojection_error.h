@@ -22,9 +22,9 @@ namespace ceres{
         ceres::AngleAxisRotatePoint(camera, point, p);
 
         // camera[3,4,5] are the translation.
-        p[0] += camera[3];
-        p[1] += camera[4];
-        p[2] += camera[5];
+        p[0] -= camera[3];
+        p[1] -= camera[4];
+        p[2] -= camera[5];
 
         // Compute the center of distortion. The sign change comes from
         // the camera model that Noah My's Bundler assumes, whereby
@@ -41,8 +41,8 @@ namespace ceres{
         T predicted_y = focaly * yp - ccy;
 
         // The error is the difference between the predicted and observed position.
-        residuals[0] = predicted_x - T(observed_x);
-        residuals[1] = predicted_y - T(observed_y);
+        residuals[0] = T(observed_x) - predicted_x;
+        residuals[1] = T(observed_y) - predicted_y  ;
 
         return true;
       }

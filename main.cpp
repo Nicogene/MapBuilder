@@ -1,4 +1,3 @@
-#include "MapBuilder.h"
 #include "icubimgkingrabber.h"
 #include "featurefinderandtracker.h"
 #include "visibilitymatrix.h"
@@ -12,12 +11,7 @@
 
 int main()
 {
-//    MapBuilder m(10,true,CVSBA);
-//    while(true){
 
-//        if(!m.process())
-//            break;
-//    }
     //while(true){
     iCubImgKinGrabber m(5,true,480,640);
     std::vector<std::vector<u_char>> images,status;
