@@ -6,11 +6,11 @@ list(APPEND CMAKE_MODULE_PATH "/usr/local/lib/cmake/" )
 find_package(YARP REQUIRED)
 FIND_PACKAGE(ICUB REQUIRED)
 find_package( OpenCV REQUIRED )
-find_package(PCL 1.4 REQUIRED)
+find_package(PCL 1.7 REQUIRED)
 FIND_PACKAGE(SuiteSparse REQUIRED)
-find_package(cvsba REQUIRED)
 find_package(Ceres REQUIRED)
 find_library(CHOLMOD_LIBRARY NAMES cholmod)
+list(REMOVE_ITEM PCL_LIBRARIES "vtkproj4")
 # add YARP include directories
 include_directories(${YARP_INCLUDE_DIRS}
                     ${ICUB_INCLUDE_DIRS}
@@ -60,7 +60,6 @@ target_link_libraries(MapBuilder ${YARP_LIBRARIES}
                                          ${CHOLMOD_LIBRARY}
                                          #${G2O_TYPES_SBA}
                                          #${G2O_TYPES_ICP}
-                                         ${cvsba_LIBS}
                                         ${CERES_LIBRARIES}
                                     FAST)
 
